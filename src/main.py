@@ -14,13 +14,11 @@ class GameClient:
         self.screen = pygame.display.set_mode((1280, 960))
   #      self.font = pygame.font.Font('./src/client/content/fonts/Maplestory Bold.ttf', 20)
 
-        self.display = pygame.Surface((1280, 960))
+        self.display = pygame.Surface((640, 480))
         self.clock = pygame.time.Clock()
-
         self.level = Level(self.display)
-        
         self.player_sprites = pygame.sprite.Group()
-        self.player = Player((640, 360), self.player_sprites) 
+        self.player = Player((0, 0), self.player_sprites) 
     
     
     def run(self):
@@ -34,9 +32,6 @@ class GameClient:
                     pygame.quit()
                     sys.exit()
                 
-                    
-
-
             dt = self.clock.tick() / 1000
 
             self.player_sprites.update(dt)      

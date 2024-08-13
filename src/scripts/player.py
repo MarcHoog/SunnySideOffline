@@ -1,20 +1,55 @@
 import pygame
 
+import spritesheet
+
 class Player(pygame.sprite.Sprite):
-    def __init__(self,
-                 pos, 
-                 group,):
+    def __init__(self, pos, group):
         super().__init__(group)
         
-        self.image = pygame.Surface((32, 32))
-        self.image.fill('purple')
-        self.rect = self.image.get_rect(center = pos)
+        # Load the spritesheet and get the first sprite image
+        self.sprites = spritesheet.SpriteSheet('src/content/fonts/assets/characters/goblin/spr_idle_strip9.png', 96, 64)
+        self.image = self.sprites[1]
         
+        # Create the hitbox
+        self.rect = self.create_center_hitbox()
+        
+        # DEBUG BOXES
+        pygame.draw.rect(self.image, (255, 0, 0), self.rect, 1)  # Red box around the hitbox
+        pygame.draw.rect(self.image, (0, 255, 0), self.image.get_rect(), 1)  # Green box around the sprite
+        
+        # Movement attributes
+        # TODO Make this Better
+        hit_box_pos = self.get_hitbox_pos() 
+        offset_pos = (pos[0] - hit_box_pos[0], pos[1] - hit_box_pos[1]) 
+        
+        
+        
+        self.pos = pygame.math.Vector2(offset_pos)
         self.direction = pygame.math.Vector2(0, 0)
-        self.pos = pygame.math.Vector2(self.rect.center)
         self.speed = 200
         
+    # TODO Make this Better
+    def get_hitbox_pos(self):
+        hitbox_width = 32
+        hitbox_height = 32
+        hitbox_x = (self.image.get_width() - hitbox_width) / 2
+        hitbox_y = (self.image.get_height() - hitbox_height) / 2
+        return (hitbox_x, hitbox_y)
+    
+    # TODO Make this Better    
+    def create_center_hitbox(self):
+        # Calculate the position of the hitbox relative to the sprite
+        hitbox_width = 32
+        hitbox_height = 32
+        hitbox_x, hitbox_y = self.get_hitbox_pos()
+        hitbox_rect = pygame.Rect(hitbox_x, hitbox_y, hitbox_width, hitbox_height)
+        
+        return hitbox_rect
+
     # EVENTS    
+    
+    def _create_hitbox(self):
+        pass
     
     def handle_events(self, event):
         """Handles events for the player"""
@@ -67,12 +102,12 @@ class Player(pygame.sprite.Sprite):
         
         # hotizontal movement
         self.pos.x += self.direction.x * self.speed * dt
-        self.rect.centerx = self.pos.x # type: ignore
+        self.rect.x = self.pos.x # type: ignore
 
         
         # vertical movement
         self.pos.y += self.direction.y * self.speed * dt
-        self.rect.centery = self.pos.y # type: ignore
+        self.rect.y = self.pos.y # type: ignore
 
         
         
