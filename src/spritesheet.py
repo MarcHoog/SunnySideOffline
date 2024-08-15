@@ -8,11 +8,24 @@ class SpriteSheet:
     Class To load in an sprite sheet from an PNG file
     """
     def __init__(self, file, width, height):
-        self._sprites = {}
+        self.current_sprite = 0
+        self._sprites = []
         self._width = width
         self._height = height
         self.__create_surfaces(file)
         
+        
+    def next(self):
+        self.current_sprite += 1
+        if self.current_sprite >= len(self):
+            self.current_sprite = 0
+        return self._sprites[self.current_sprite]
+    
+    def previous(self):
+        self.current_sprite -= 1
+        if self.current_sprite <= 0:
+            self.current_sprite = len(self)
+        return self._sprites[self.current_sprite]        
     
     def __create_surfaces(self,file):
         sheet = pygame.image.load(file).convert_alpha()
@@ -22,7 +35,7 @@ class SpriteSheet:
                 sprite_count += 1
                 
                 sub_surface = sheet.subsurface((x, y, self._width, self._height))
-                self._sprites[sprite_count] = self.__double_size(sub_surface)
+                self._sprites.append(self.__double_size(sub_surface))
                 
     def __double_size(self, surface):
         return pygame.transform.scale2x(surface)
@@ -32,3 +45,6 @@ class SpriteSheet:
     
     def __len__(self):
         return len(self._sprites)
+    
+    def __call__(self):
+        return self._sprites[self.current_sprite]   
