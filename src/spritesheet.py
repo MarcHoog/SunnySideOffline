@@ -10,7 +10,6 @@ class SpriteSheet:
     def __init__(self, file, width, height):
         self.current_sprite = 0
         self._sprites = []
-        self._flipped_sprites = []
         self._width = width
         self._height = height
         self.__create_surfaces(file)

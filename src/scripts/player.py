@@ -8,7 +8,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, pos, group):
         super().__init__(group)
         
-        self.stance = 'mining'
+        self.stance = 'idle'
         
         # Load the spritesheet and get the first sprite image
         self.assets = self.load_assets()

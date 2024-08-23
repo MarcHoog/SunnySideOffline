@@ -13,7 +13,6 @@ class GameClient:
         pygame.display.set_caption("Sunny Side")
         
         self.screen = pygame.display.set_mode((1280, 960))
-  #      self.font = pygame.font.Font('./src/client/content/fonts/Maplestory Bold.ttf', 20)
 
         self.display = pygame.Surface((640, 480))
         self.clock = pygame.time.Clock()
