@@ -2,26 +2,33 @@ import pygame
 
 import spritesheet
 import config
+from events import ANIMATE
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, group):
         super().__init__(group)
         
+        self.stance = 'mining'
+        
         # Load the spritesheet and get the first sprite image
         self.assets = self.load_assets()
-        self.image = self.assets['mining']()
+        self.image = self.assets[self.stance]()
         self.rect = self._create_hitbox()
+        self.flip = False
         
         self.pos = pygame.math.Vector2(self._offset_player_pos(pos))
         self.direction = pygame.math.Vector2(0, 0)
         self.speed = 200
         
+        pygame.event.post(pygame.event.Event(ANIMATE, {'entity': 'player'}))
+        
     def animate(self):
         """Animate the player sprite"""
-        self.assets['mining'].next()
-        self.image = self.assets['mining']()  
-        print(self.pos)      
-        
+        self.assets[self.stance].next()
+        self.image = self.assets[self.stance]()
+        if self.flip:
+            self.image = pygame.transform.flip(self.image, True, False)
+      
     def load_assets(self):
         assets = {}
         
@@ -29,7 +36,6 @@ class Player(pygame.sprite.Sprite):
             assets[stance] = spritesheet.SpriteSheet(f'src/content/assets/characters/goblin/{stance}.png', 
                                                config.PLAYER_SRITE_SHEET_SPRITE_WIDTH, 
                                                config.PLAYER_SPRITE_SHEET_SPRITE_HEIGHT)        
-        
         return assets
         
     def determine_hitbox_cords(self):
@@ -52,7 +58,10 @@ class Player(pygame.sprite.Sprite):
         return hitbox_rect
 
     def handle_events(self, event):
-        """Handles events for the player"""
+       if event.type == ANIMATE:
+           self.animate()
+           pygame.time.set_timer(pygame.event.Event(ANIMATE, {'entity': 'player'}), 100)
+        
         
     def update(self, dt):
         """Update the player based on Delta Time""" 
@@ -72,8 +81,10 @@ class Player(pygame.sprite.Sprite):
             
         if keys[pygame.K_LEFT]:
             self.direction.x = -1
+            self.flip = True
         elif keys[pygame.K_RIGHT]:
             self.direction.x = 1
+            self.flip = False
         else:
             self.direction.x = 0
             

@@ -10,11 +10,11 @@ class SpriteSheet:
     def __init__(self, file, width, height):
         self.current_sprite = 0
         self._sprites = []
+        self._flipped_sprites = []
         self._width = width
         self._height = height
         self.__create_surfaces(file)
-        
-        
+    
     def next(self):
         self.current_sprite += 1
         if self.current_sprite >= len(self):
@@ -46,5 +46,6 @@ class SpriteSheet:
     def __len__(self):
         return len(self._sprites)
     
-    def __call__(self):
+    def __call__(self) -> pygame.Surface:
         return self._sprites[self.current_sprite]   
+    

@@ -5,6 +5,7 @@ import logging
 from logger import setup_logger
 from scripts.player import Player
 from scripts.level import Level
+from events import ANIMATE
 
 class GameClient:
     def __init__(self):
@@ -19,6 +20,8 @@ class GameClient:
         self.level = Level(self.display)
         self.player_sprites = pygame.sprite.Group()
         self.player = Player((0, 0), self.player_sprites) 
+        
+        self.entities = {'player': self.player} 
     
     
     def run(self):
@@ -31,7 +34,9 @@ class GameClient:
                     print("Quiting the Game.")
                     pygame.quit()
                     sys.exit()
-                
+                if event.type == ANIMATE:
+                    self.entities[event.entity].handle_events(event)
+
             dt = self.clock.tick() / 1000
 
             self.player_sprites.update(dt)      
