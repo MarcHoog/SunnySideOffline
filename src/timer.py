@@ -1,8 +1,9 @@
 class Timer:
     
-    def __init__(self, duration, function, *args, **kwargs):
+    def __init__(self, duration, continious,  function,*args, **kwargs):
         self.duration = duration
         self.time_elapsed = 0
+        self.continuous = continious
         self.function = function
         self.args = args
         self.kwargs = kwargs
@@ -12,6 +13,7 @@ class Timer:
         self.running = True       
         
     def stop(self):
+        self.time_elapsed = 0
         self.running = False    
     
     def reset(self):
@@ -22,7 +24,10 @@ class Timer:
             self.time_elapsed += dt * 3600
             if self.time_elapsed >= self.duration:
                 self.function(*self.args, **self.kwargs)
-                self.reset()        
+                if not self.continuous:
+                    self.stop()
+                else:
+                    self.reset()        
                 
             
         

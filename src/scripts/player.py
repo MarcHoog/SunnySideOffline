@@ -9,12 +9,13 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, pos, group):
         super().__init__(group)
         
-        self.stance = 'idle'
+        self.state = 'idle'
+        self.default_state = 'idle'
         self.pos = pygame.Vector2(pos)
         
         # Load the spritesheet and get the first sprite image
         self.assets = self.load_assets()
-        self.image = self.assets[self.stance]()
+        self.image = self.assets[self.state]()
  
         # Calculate the offset for the image so the image is centered ('These images have allot of empty space, for animations')
         self.offset = self.image_center_offset()
@@ -27,14 +28,17 @@ class Player(pygame.sprite.Sprite):
         self.speed = 200
         
         self.flip = False
+        self.cooldown = False    
         
-        self.animation_timer = timer.Timer(300, self.animate)
+        self.animation_timer = timer.Timer(300, True, self.animate)
         self.animation_timer.start()
+        self.action_cooldown = timer.Timer(1000, False, lambda: setattr(self, 'cooldown', False))    
+        self.state_queue = []
         
     def animate(self):
         """Animate the player sprite"""
-        self.assets[self.stance].next()
-        self.image = self.assets[self.stance]()
+        self.assets[self.state].next()
+        self.image = self.assets[self.state]()
         if self.flip:
             self.image = pygame.transform.flip(self.image, True, False)
             
@@ -56,10 +60,22 @@ class Player(pygame.sprite.Sprite):
     
     def handle_stance(self):
         """Handle the stance of the player"""
-        if self.direction.magnitude() > 0:
-            self.stance = 'walk'
-        else:
-            self.stance = 'idle'
+        if self.state in {'idle'} and self.direction.magnitude() > 0:
+            self.state_queue.append('walk')
+
+        if self.state == 'walk' and self.direction.magnitude() == 0:
+            self.state_queue.pop()  
+
+        if self.state not in {'idle', 'walk'} and self.direction.magnitude() > 0:
+            self.state_queue.pop()
+            # Cancel The Action by sending an Event to the Action Object
+            
+            
+        if len(self.state_queue) != 0:
+            self.state = self.state_queue[-1]
+        else: 
+            self.state = self.default_state     
+    
     
     def handle_events(self, event):
         pass        
@@ -70,6 +86,7 @@ class Player(pygame.sprite.Sprite):
         self.move(dt)
         self.handle_stance()
         self.animation_timer.update(dt)
+        self.action_cooldown.update(dt)
         
     def input(self):
         """Handle the input for the player"""
@@ -92,9 +109,18 @@ class Player(pygame.sprite.Sprite):
             self.direction.x = 0
             
         if keys[pygame.K_SPACE]:
-            print('differnt stance')    
-            self.stance = random.choice(list(self.assets.keys()))
-            print(self.stance)
+            if not self.cooldown:
+                self.state_queue.append(random.choice(list(self.assets.keys())))
+                self.cooldown = True
+                self.action_cooldown.start()
+            
+            
+        if keys[pygame.K_BACKSPACE]:
+            if not self.cooldown:
+                self.cooldown = True
+                self.action_cooldown.start()
+                if len(self.state_queue) != 0:      
+                    self.state_queue.pop()
             
     def move(self, dt):
         """Move the player based on the direction and speed"""  
