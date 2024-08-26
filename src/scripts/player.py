@@ -1,12 +1,9 @@
 import pygame
 
 import spritesheet
+import timer
 import config
-from events import ANIMATE
-
-# SO this is quite confusing with the rects and the positions. since the topleft of the rect is the position of the sprite but it's the correct Size UGH...
-# Maybe i am just dumb and don't understand it. But just to be sure we Gonna Seperate them.
-# The location is the HITBOX is not determined by the sprite but the sprite is determined by the hitbox.
+import random
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, group):
@@ -14,7 +11,6 @@ class Player(pygame.sprite.Sprite):
         
         self.stance = 'idle'
         self.pos = pygame.Vector2(pos)
-        
         
         # Load the spritesheet and get the first sprite image
         self.assets = self.load_assets()
@@ -32,7 +28,8 @@ class Player(pygame.sprite.Sprite):
         
         self.flip = False
         
-        pygame.event.post(pygame.event.Event(ANIMATE, {'entity': 'player'}))
+        self.animation_timer = timer.Timer(300, self.animate)
+        self.animation_timer.start()
         
     def animate(self):
         """Animate the player sprite"""
@@ -40,6 +37,7 @@ class Player(pygame.sprite.Sprite):
         self.image = self.assets[self.stance]()
         if self.flip:
             self.image = pygame.transform.flip(self.image, True, False)
+            
       
     def load_assets(self):
         assets = {}
@@ -56,16 +54,22 @@ class Player(pygame.sprite.Sprite):
         hitbox_y = (self.image.height - config.PLAYER_HITBOX_HEIGHT) / 2 # type: ignore
         return pygame.Vector2((hitbox_x, hitbox_y))   
     
+    def handle_stance(self):
+        """Handle the stance of the player"""
+        if self.direction.magnitude() > 0:
+            self.stance = 'walk'
+        else:
+            self.stance = 'idle'
+    
     def handle_events(self, event):
-       if event.type == ANIMATE:
-           self.animate()
-           pygame.time.set_timer(pygame.event.Event(ANIMATE, {'entity': 'player'}), 100)
-        
+        pass        
         
     def update(self, dt):
         """Update the player based on Delta Time""" 
         self.input()
         self.move(dt)
+        self.handle_stance()
+        self.animation_timer.update(dt)
         
     def input(self):
         """Handle the input for the player"""
@@ -88,8 +92,9 @@ class Player(pygame.sprite.Sprite):
             self.direction.x = 0
             
         if keys[pygame.K_SPACE]:
-            self.animate()
-            
+            print('differnt stance')    
+            self.stance = random.choice(list(self.assets.keys()))
+            print(self.stance)
             
     def move(self, dt):
         """Move the player based on the direction and speed"""  
