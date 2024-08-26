@@ -4,21 +4,33 @@ import spritesheet
 import config
 from events import ANIMATE
 
+# SO this is quite confusing with the rects and the positions. since the topleft of the rect is the position of the sprite but it's the correct Size UGH...
+# Maybe i am just dumb and don't understand it. But just to be sure we Gonna Seperate them.
+# The location is the HITBOX is not determined by the sprite but the sprite is determined by the hitbox.
+
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, group):
         super().__init__(group)
         
         self.stance = 'idle'
+        self.pos = pygame.Vector2(pos)
+        
         
         # Load the spritesheet and get the first sprite image
         self.assets = self.load_assets()
         self.image = self.assets[self.stance]()
-        self.rect = self._create_hitbox()
-        self.flip = False
-        
-        self.pos = pygame.math.Vector2(self._offset_player_pos(pos))
+ 
+        # Calculate the offset for the image so the image is centered ('These images have allot of empty space, for animations')
+        self.offset = self.image_center_offset()
+
+        self.rect = self.image.get_rect()
+        self.rect.x, self.rect.y = -self.offset 
+        self.hitbox = pygame.Rect(self.pos.x, self.pos.y, config.PLAYER_HITBOX_WIDTH, config.PLAYER_HITBOX_HEIGHT)                          
+       
         self.direction = pygame.math.Vector2(0, 0)
         self.speed = 200
+        
+        self.flip = False
         
         pygame.event.post(pygame.event.Event(ANIMATE, {'entity': 'player'}))
         
@@ -38,25 +50,12 @@ class Player(pygame.sprite.Sprite):
                                                config.PLAYER_SPRITE_SHEET_SPRITE_HEIGHT)        
         return assets
         
-    def determine_hitbox_cords(self):
+    def image_center_offset(self):
         """Determine the hitbox coordinates so the Hitbox is centered on the sprite"""    
-        hitbox_x = (self.image.get_width() - config.PLAYER_HITBOX_WIDTH) / 2 # type: ignore
-        hitbox_y = (self.image.get_height() - config.PLAYER_HITBOX_HEIGHT) / 2 # type: ignore
-        return (hitbox_x, hitbox_y)
-
-    def _offset_player_pos(self, pos):
-        """ Offset the player position so the hitbox is centered on the sprite and the Player is drawn from the top left corner of the Hitbox"""     
-        hit_box_pos = self.determine_hitbox_cords() 
-        offset_pos = (pos[0] - hit_box_pos[0], pos[1] - hit_box_pos[1]) 
-        return offset_pos
+        hitbox_x = (self.image.width - config.PLAYER_HITBOX_WIDTH) / 2 # type: ignore
+        hitbox_y = (self.image.height - config.PLAYER_HITBOX_HEIGHT) / 2 # type: ignore
+        return pygame.Vector2((hitbox_x, hitbox_y))   
     
-    def _create_hitbox(self):
-        """ Create a hitbox for the player sprite """
-        # Calculate the position of the hitbox relative to the sprite
-        hitbox_x, hitbox_y = self.determine_hitbox_cords()
-        hitbox_rect = pygame.Rect(hitbox_x, hitbox_y, config.PLAYER_HITBOX_WIDTH, config.PLAYER_HITBOX_HEIGHT) 
-        return hitbox_rect
-
     def handle_events(self, event):
        if event.type == ANIMATE:
            self.animate()
@@ -100,13 +99,10 @@ class Player(pygame.sprite.Sprite):
         
         # hotizontal movement
         self.pos.x += self.direction.x * self.speed * dt
-        self.rect.x = self.pos.x # type: ignore
+        self.hitbox.x = self.pos.x
+        self.rect.x = self.pos.x - self.offset.x # type: ignore
 
-        
         # vertical movement
         self.pos.y += self.direction.y * self.speed * dt
-        self.rect.y = self.pos.y # type: ignore
-
-        
-        
-        
+        self.hitbox.y = self.pos.y
+        self.rect.y = self.pos.y - self.offset.y # type: ignore
